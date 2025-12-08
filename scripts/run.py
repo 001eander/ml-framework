@@ -3,12 +3,17 @@ from pathlib import Path
 from subprocess import PIPE, Popen
 from time import sleep
 
+HOSTS_CNT = 17
+V100S_32G = [1, 2, 3, 4, 5, 6, 11, 12]
+V100_32G = [7, 8]
+V100_16G = [9, 10]
+A100_40G = [13]
+L20_48G = [14, 15, 16, 17]
+
 EXP_DIR = "conf"
 ORDER = "r15s"
-HOSTS_CNT = 17
-INCLUDE = None
-# EXCLUDE = None
-EXCLUDE = [7, 8, 9, 10, 13, 14, 15, 16, 17]
+INCLUDE = A100_40G + L20_48G
+EXCLUDE = None
 INTERVAL = 15
 
 
@@ -33,8 +38,10 @@ def get_hosts() -> tuple[bool, set[int]]:
 dir = Path(EXP_DIR)
 files = [str(f) for f in dir.glob("*.json")]
 
+
 for i, file in enumerate(files, start=1):
     print(f"Processing {file} ({i}/{len(files)})\n")
+
     while is_job_pending():
         sleep(10)
 
@@ -46,7 +53,7 @@ for i, file in enumerate(files, start=1):
     args = [
         "-gpu 'num=1:mode=exclusive_process'",
         f"-R 'order[{ORDER}]'",
-        f"-R 'select[{' && '.join(select_list)}]'",
+        f"-R 'select[{(' || ' if use_in_hosts else ' && ').join(select_list)}]'",
         f"-J {name}",
         f"-oo output/{name}.out",
         f"-eo output/{name}.err",
