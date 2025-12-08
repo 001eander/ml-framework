@@ -13,7 +13,7 @@ class MLP(nn.Module):
         weight_init: Literal["xavier", "kaiming"] | None = "kaiming",
         nonlinear: Literal["prelu", "relu", "leaky_relu"] | None = "prelu",
         neg_k: float | None = 0.25,
-        final_nonlinear: Literal["tanh", "sigmoid"] | None = None,
+        final_nonlinear: Literal["tanh", "sigmoid", "softmax"] | None = None,
     ) -> None:
         super().__init__()
         if (nonlinear is None or nonlinear == "relu") and neg_k is not None:
@@ -50,6 +50,8 @@ class MLP(nn.Module):
                     layers.append(nn.Tanh())
                 elif final_nonlinear == "sigmoid":
                     layers.append(nn.Sigmoid())
+                elif final_nonlinear == "softmax":
+                    layers.append(nn.Softmax(dim=1))
                 return layers
             if nonlinear == "relu":
                 layers.append(nn.ReLU())
