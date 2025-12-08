@@ -1,6 +1,6 @@
 [project]
 authors = [{ name = "Tang Tao", email = "2024111155@stu.sufe.edu.cn" }]
-description = "A machine learning framework project."
+description = "A machine learning framework template project for SUFE HPC.."
 name = "ml-framework"
 version = "0.1.0"
 readme = "README.md"
@@ -30,5 +30,4 @@ url = "https://download.pytorch.org/whl/cu118"
 explicit = true
 
 [tool.ruff]
-
 line-length = 120
