@@ -77,3 +77,40 @@ class MLP(nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x.unflatten(1, self.out_shape)
+
+
+class DenseMLP(MLP):
+    def __init__(
+        self,
+        in_shape: list[int],
+        out_shape: list[int],
+        layers: int,
+        size: int,
+        weight_init: Literal["xavier", "kaiming"] | None = "kaiming",
+        nonlinear: Literal["prelu", "relu", "leaky_relu"] | None = "prelu",
+        neg_k: float | None = 0.25,
+    ) -> None:
+        super().__init__(
+            in_shape,
+            out_shape,
+            layers,
+            size,
+            weight_init=weight_init,
+            nonlinear=nonlinear,
+            neg_k=neg_k,
+        )
+
+        self.layers[-1] = nn.Linear(layers * size, math.prod(out_shape))
+        if nonlinear is not None and weight_init is not None:
+            _init_linear(self.layers[-1], weight_init, nonlinear, neg_k)  # type: ignore
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.flatten(start_dim=1)
+        xs = []
+        for layer in self.layers[:-1]:
+            x = layer(x)
+            if isinstance(layer, nn.Linear):
+                xs.append(x)
+        x = torch.cat(xs, dim=1)
+        x = self.layers[-1](x)
+        return x.unflatten(1, self.out_shape)
