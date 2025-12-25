@@ -2,7 +2,7 @@ remote_server="sufe197"
 remote_dir="~/demo-ml/"
 
 
-echo "Sync loacl to remote"
+echo "Sync local to remote"
 ssh $remote_server "mkdir -p $remote_dir"
 rsync -avczq --delete --exclude='.gitkeep' ./conf/ "$remote_server:$remote_dir/conf/"
 # rsync -avczq --delete --exclude='.gitkeep' ./exp/ "$remote_server:$remote_dir/exp/"
