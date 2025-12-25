@@ -12,9 +12,11 @@ L20_48G = [14, 15, 16, 17]
 
 EXP_DIR = "conf"
 ORDER = "r15s"
-INCLUDE = A100_40G + L20_48G
+INCLUDE = None
 EXCLUDE = None
 INTERVAL = 15
+
+GPU_MODE = "exclusive_process"  # shared, exclusive_process
 
 
 def is_job_pending():
@@ -36,14 +38,21 @@ def get_hosts() -> tuple[bool, set[int]]:
 
 
 dir = Path(EXP_DIR)
-files = [str(f) for f in dir.glob("*.json")]
+files = [str(f) for f in dir.glob("*.json")] + [str(f) for f in dir.glob("*.toml")]
 
 
 for i, file in enumerate(files, start=1):
     print(f"Processing {file} ({i}/{len(files)})\n")
 
+    if "local" in file:
+        print(f"Skipping local job {file}\n")
+        continue
+
+    wait_cnt = 0
     while is_job_pending():
-        sleep(10)
+        wait_cnt += 1
+        print(f"There are pending jobs, waiting... ({wait_cnt * INTERVAL}s elapsed)\n")
+        sleep(INTERVAL)
 
     name = Path(file).stem
 
@@ -51,14 +60,14 @@ for i, file in enumerate(files, start=1):
     select_list = [f"hname{'==' if use_in_hosts else '!='}gpu{gid:02}" for gid in hosts]
 
     args = [
-        "-gpu 'num=1:mode=exclusive_process'",
+        f"-gpu 'num=1:mode={GPU_MODE}'",
         f"-R 'order[{ORDER}]'",
-        f"-R 'select[{(' || ' if use_in_hosts else ' && ').join(select_list)}]'",
+        f"-R 'select[{(' || ' if use_in_hosts else ' && ').join(select_list)}]'" if select_list else "",
         f"-J {name}",
         f"-oo output/{name}.out",
         f"-eo output/{name}.err",
     ]
-    cmd = f"python src/main.py {file}"
+    cmd = f"uv run src/main.py {file}"
     full_cmd = f"bsub {' '.join(args)} {cmd}"
 
     print(f"{full_cmd}\n")
