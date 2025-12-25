@@ -9,6 +9,7 @@ rsync -avczq --delete --exclude='.gitkeep' ./conf/ "$remote_server:$remote_dir/c
 rsync -avczq --delete ./scripts/ "$remote_server:$remote_dir/scripts/"
 rsync -avczq --delete ./src/ "$remote_server:$remote_dir/src/"
 rsync -avcq ./pyproject.toml "$remote_server:$remote_dir/pyproject.toml"
+rsync -avcq ./.python-version "$remote_server:$remote_dir/.python-version"
 rsync -avcq ./uv.lock "$remote_server:$remote_dir/uv.lock"
 
 echo "Sync remote to local"
